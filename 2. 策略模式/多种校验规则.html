@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="" id="registerForm" >
+        用户名：<input type="text" name="userName">
+        密码：<input type="text" name="password">
+        <button>提交</button>
+    </form>
+    <script>
+        const registerForm = document.getElementById('registerForm')
+        const strategies = {
+            isNonEmpty(value, errorMsg) {
+                if (value === '') {
+                    return errorMsg
+                }
+            },
+            minLength(value, length, errorMsg) {
+                if (value.length < length) {
+                    return errorMsg
+                }
+            }
+        }
+
+        // 接下来我们准备实现Validator类
+        const validataFunc = function() {
+            const validator = new Validator()
+
+            // 添加校验规则
+            validator.add(registerForm.userName, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '用户名不能为空'
+            }, {
+                strategy: 'minLength:10',
+                errorMsg: '用户名长度不能小于10位'
+            }])
+            validator.add(registerForm.password, 'minLength:6', '密码长度不能少于6位')
+
+            const errorMsg = validator.start()
+            return errorMsg // 返回校验结果
+        }
+
+        registerForm.onsubmit = function(e) {
+            const errorMsg = validataFunc()
+            console.log(errorMsg)
+            if (errorMsg) {
+                alert(errorMsg)
+                return false // 阻止表单提交
+            }
+            console.log('验证通过')
+            return false
+        }
+
+
+        // 实现Validator类
+
+        const Validator = function() {
+            this.cache = []
+        }
+
+        Validator.prototype.add = function(dom, rules, errorMsg) {
+
+            if(Array.isArray(rules)) { // 如果传的是多种规则
+                for (const rule of rules) {
+                    _add.call(this, rule.strategy, rule.errorMsg)
+                }
+            } else {
+                _add.call(this, rules, errorMsg)
+            }
+
+            function _add(strategy, errorMsg) {
+                const strategyAry = strategy.split(":")
+                const eMsg = errorMsg
+                this.cache.push(function() { // 把校验的步骤用空函数包装起来，并且放入cache
+                    const strategy = strategyAry.shift() // 用户挑选的strategy
+                    strategyAry.unshift(dom.value) // 把input的value添加进参数列表
+                    // 如果传的是minLength: 6，此时是 [value, 6, errorMsg]
+                    // 如果是isNotEmpty, 就是[value, errorMsg]
+                    // 符合参数结构
+                    strategyAry.push(errorMsg) // 把errorMsg添加进参数列表
+                    return strategies[strategy].apply(dom, strategyAry)
+                })
+            }
+            
+        }
+
+        Validator.prototype.start = function() {
+            for (const cache of this.cache) {
+                const msg = cache()
+                if (msg) { // 如果有明确的放回值，说明校验没有通过
+                    return msg
+                }
+            }
+        }
+
+        // 使用了策略模式重构了代码后，我们仅仅通过**配置**的方式就可以完成一个表单的校验，这些校验规则可以复用在程序的任何地方，还能作位插件的形式，方便的移植到其他项目中
+
+        // 在修改规则的时候，只需要编写或者修改少量的代码。比如把用户名规则改成不能少于10个字符，可以看到这个时候的修改是毫不费力的
+        // validator.add(registerForm.userName, 'minLength:10', '用户名长度不能小于10位')
+
+        
+    </script>
+</body>
+</html>

@@ -151,26 +151,26 @@ const getSingle = function(fn) {
     }
 }
 
-// const getLoginLayer = function() {
-//     const div = document.createElement('div')
-//     div.style.display = 'none'
-//     div.innerHTML = '我是弹窗'
-//     div.classList.add('popup')
-//     document.body.appendChild(div)
-//     return div
-// }
+const getLoginLayer = function() {
+    const div = document.createElement('div')
+    div.style.display = 'none'
+    div.innerHTML = '我是弹窗'
+    div.classList.add('popup')
+    document.body.appendChild(div)
+    return div
+}
 
-// const createSingleLoginLayer = getSingle(getLoginLayer)
+const createSingleLoginLayer = getSingle(getLoginLayer)
 
-// open.onclick = function() {
-//     console.log('我点击了')
-//     const loginLayer = createSingleLoginLayer()
-//     loginLayer.style.display = 'block'
-// }
-// close.onclick = function() {
-//     const loginLayer = createSingleLoginLayer()
-//     loginLayer.style.display = 'none'
-// }
+open.onclick = function() {
+    console.log('我点击了')
+    const loginLayer = createSingleLoginLayer()
+    loginLayer.style.display = 'block'
+}
+close.onclick = function() {
+    const loginLayer = createSingleLoginLayer()
+    loginLayer.style.display = 'none'
+}
 
 
 // const createSingleIframe = getSingle(function() {
@@ -190,20 +190,20 @@ const getSingle = function(fn) {
 //     iframe.style.display = 'none'
 // }
 
-var bindEvent = getSingle(function() {
-    console.log('我执行了内部')
-    document.getElementById('div1').addEventListener('click', function() {
-        alert('click')
-    })
+// var bindEvent = getSingle(function() {
+//     console.log('我执行了内部')
+//     document.getElementById('div1').addEventListener('click', function() {
+//         alert('click')
+//     })
     
-    return true
-})
+//     return true
+// })
 
-var render = function() {
-    console.log('我执行了')
-    bindEvent()
-}
+// var render = function() {
+//     console.log('我执行了')
+//     bindEvent()
+// }
 
-render()
-render()
-render()
+// render()
+// render()
+// render()
