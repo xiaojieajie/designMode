@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="replay">播放录像</button>
+    <script>
+        const Ryu = {
+            attack() {
+                console.log('攻击')
+            },
+            defense() {
+                console.log('防御')
+            },
+            jump() {
+                console.log('跳')
+            },
+            crouch(){
+                console.log('蹲下')
+            }
+        }
+        const makeCommand = function(receiver, state) {
+            return function() {
+                receiver[state]()
+            }
+        }
+        const commands = {
+            "119": "jump", // W
+            "115": "crouch", // S
+            "97": "defense", // A
+            "100": "attack" // D
+        }
+        
+        const commandStack = [] // 保存命令的堆栈
+        document.onkeypress = function(ev) {
+            const keyCode = ev.keyCode,
+                  command = makeCommand(Ryu, commands[keyCode])
+            if (command) {
+                command()
+                commandStack.push(command)
+            }
+        }
+
+        replay.onclick = function() {
+            // 点击播放录像
+            while(command = commandStack.shift()) {
+                command()
+            }
+        }
+    </script>
+</body>
+</html>

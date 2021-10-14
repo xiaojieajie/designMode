@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="ball" style="position: absolute;background-color: #000;width: 50px;height: 50px;border-radius: 50%;top: 10vh;"></div>
+    输入小球移动后的位置<input type="number" id="pos">
+    <button id="moveBtn">开始移动</button>
+    <div>
+        <button id="cancelBtn">撤销操作</button>
+    </div>
+
+    <!-- 策略模式的Animate类代码 -->
+    <script>
+         /**
+         * t: 动画已消耗的时间
+         * b: 小球原始位置
+         * c: 小球的目标位置
+         * d: 动画持续的总时间
+        */
+        const tween = {
+            linear(t, b, c, d) {
+                return c * t / d + b
+            },
+            easeIn(t, b, c, d) {
+                return c * (t /= d) * t + b
+            },
+            strongEaseIn(t, b, c, d) {
+                return c * (t /= d) * t * t * t * t + b
+            },
+            strongEaseOut(t, b, c, d) {
+                return c * ((t = t / d - 1) * t * t * t * t + 1) + b
+            },
+            sineaseIn(t, b, c, d) {
+                return c * (t /= d) * t * t + b
+            },
+            sineaseOut(t, b, c, d) {
+                return c * ((t = t / d - 1) * t * t + 1) + b
+            }
+        }
+
+        const Animate = function(dom) {
+            this.dom = dom // 进行运动的dom节点
+            this.startTime = 0 // 动画开始时间
+            this.startPos = 0 // 动画开始时，dom节点的位置，即dom的初始位置
+            this.endPos = 0 // 动画结束时，dom节点的位置，即dom的目标位置
+            this.propertyName = null // dom节点需要被改变额css属性名
+            this.easing = null // 缓动算法
+            this.duration = null // 动画持续时间
+        }
+
+        // 负责启动这个动画
+        Animate.prototype.start = function(propertyName, endPos, duration, easing) {
+            this.startTime = +new Date // 动画启动时间
+            this.startPos = this.dom.getBoundingClientRect()[propertyName] // dom节点的初始位置
+            this.propertyName = propertyName // dom节点需要给更改的css属性名
+            this.endPos = endPos // dom节点的目标位置
+            this.duration = duration // 动画持续时间
+            this.easing = tween[easing] // 缓动算法
+
+            let timer = setInterval(() => {
+                if (this.step() === false) { // 如果动画已结束，清除定时器
+                    clearInterval(timer)
+                }
+            }, 16)
+        }
+
+        
+
+        Animate.prototype.step = function() {
+            const now = +new Date
+            if (now >= this.startTime + this.duration) {
+                // 如果当前时间大于动画开始时间加上持续时间，说明动画结束，此时要修正小球的位置，因为在这一帧开始之后，小球的位置已经接近了目标位置，但很可能不完全等同于目标位置
+                this.update(this.endPos)
+                // 然后false给start函数清除定时器
+                return false
+            }
+            // 求出小球的当前位置
+            const pos = this.easing(now - this.startTime, this.startPos, this.endPos - this.startPos, this.duration)
+            this.update(pos) // 更新小球的css属性值
+        }
+
+        Animate.prototype.update = function(pos) {
+            this.dom.style[this.propertyName] = pos + 'px'
+        }
+    </script>
+
+    <script>
+        // 不用命令模式实现
+        // moveBtn.onclick = function() {
+        //     const animate = new Animate(ball)
+        //     animate.start('left', pos.value, 1000, 'strongEaseOut')
+        // }
+
+        // 命令模式实现
+        const MoveCommand = function(receiver, pos) {
+            this.receiver = receiver
+            this.pos = pos
+            this.oldPos = null
+        }
+        let moveCommand
+        MoveCommand.prototype.execute = function() {
+            this.receiver.start('left', this.pos, 1000, 'strongEaseOut')
+            // 记录移动前的位置
+            this.oldPos = this.receiver.dom.getBoundingClientRect()[this.receiver.propertyName]
+        }
+        MoveCommand.prototype.undo = function() {
+            // 回到开始前的位置
+            this.receiver.start('left', this.oldPos, 1000, 'strongEaseOut')
+        }
+        moveBtn.onclick = function() {
+            const animate = new Animate(ball)
+            moveCommand = new MoveCommand(animate, pos.value)
+            moveCommand.execute()
+        }
+        cancelBtn.onclick = function() {
+            moveCommand.undo()
+        }
+    </script>
+</body>
+</html>
