@@ -172,3 +172,15 @@ const uploadObj = iteratorUploadObj(getActiveUploadObj, getFlashUploadObj, itera
 # 小结
 
 迭代器是一种相对简单的模式, 简单到很多时候我们都不认为它是一种设计模式. 目前的绝大部分语言都内置了迭代器(ES6迭代器, for of)
+
+
+# 其他文章
+
+1. [单例模式](/1.单例模式/readme.md)
+2. [策略模式](/2.策略模式/readme.md)
+3. [代理模式](/3.代理模式/readme.md)
+4. [迭代器模式](/4.迭代器模式/readme.md)
+5. [发布-订阅模式](/5.发布-订阅模式/readme.md)
+6. [命令模式](/6.命令模式/readme.md)
+7. [组合模式](/7.组合模式/readme.md)
+8. [模板模式](/8.模板模式/readme.md)
