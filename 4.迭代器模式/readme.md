@@ -184,3 +184,4 @@ const uploadObj = iteratorUploadObj(getActiveUploadObj, getFlashUploadObj, itera
 6. [命令模式](/6.命令模式/readme.md)
 7. [组合模式](/7.组合模式/readme.md)
 8. [模板模式](/8.模板模式/readme.md)
+9. [享元模式](9.享元模式/readme.md)
