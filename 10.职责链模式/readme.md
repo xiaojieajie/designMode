@@ -208,3 +208,149 @@ const chainOrder300 = new Chain(order300)
 chainOrder500.setNextSuccessor(chainOrder300)
 chainOrder300.setNextSuccessor(chainOrder200)
 ```
+
+# 异步的职责链
+
+在现实开发中，经常会遇到一些异步的问题，比如我们要在节点函数中发起一个ajax请求，异步请求返回的结果才能决定是否继续在职责链中passRequest
+
+这时候让节点函数同步返回"nextSuccessor"已经没有意义，所以要给Chain类再增加一个原型方法Chain.prototype.next，表示手动传递请求给职责链的下一个节点。
+
+```js
+class Chain {
+    constructor(fn) {
+        this.fn = fn
+        this.successor = null;
+    }
+    setNextSuccessor(successor) {
+        return this.successor = successor
+    }
+    next() {
+        return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+    }
+    passRequest() {
+        const ret = this.fn.apply(this, arguments)
+        if (ret === 'nextSuccessor') {
+            return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+        }
+        return ret
+    }
+}
+
+const fn1 = new Chain(() => {
+    console.log(1)
+    return 'nextSuccessor'
+})
+
+
+const fn2 = new Chain(function() {
+    console.log(2)
+    setTimeout(() => {
+        this.next()
+    })
+})
+
+const fn3 = new Chain(() => {
+    console.log(3)
+})
+
+
+fn1.setNextSuccessor(fn2).setNextSuccessor(fn3)
+fn1.passRequest()
+
+```
+
+# 职责链模式的优缺点
+
+## 优点
+
+1. 解耦了请求发送者和N个接收者之间的复杂关系
+2. 可以手动指定起始节点
+
+## 缺点
+
+1. 不能保证某个请求一定会被链中的节点处理。
+2. 如果职责链过长会带来性能损耗
+
+
+# 用AOP实现职责链
+
+```js
+Function.prototype.after = function(fn) {
+    return (...args) => {
+        const ret = this.apply(this, args)
+        if (ret === 'nextSuccessor') {
+            return fn.apply(this, args)
+        }
+        return ret
+    }
+}
+
+const order500 = function(orderType, pay, stock) {
+    if (orderType === 1 && pay === true) {
+        console.log('100元优惠券')
+    } else {
+        return 'nextSuccessor'
+    }
+}
+
+const order200 = function(orderType, pay, stock) {
+    if (orderType === 2 && pay === true) {
+        console.log('50元优惠券')
+    } else {
+        return 'nextSuccessor'
+    }
+}
+
+const orderNormal = function(orderType, pay, stock) {
+    if (stock > 0) {
+        console.log('普通购买')
+    } else {
+        console.log('库存不足')
+    }
+}
+
+const order = order500.after(order200).after(orderNormal)
+
+order(1, true, 500)
+order(2, true, 500)
+order(1, false, 500)
+
+```
+
+
+# 用职责链模式获取文件上传对象
+
+还记得**迭代器模式**中获取文件上传的例子：当时我们创建了一个迭代器来获取迭代文件上传对象，其实用职责链模式可以更简单，我们完全不用创建这个多余的迭代器，完整代码如下
+
+```JS
+
+const getActiveUploadObj = function() {
+    try {
+        return new ActionXObject('TXFTNActiveX.FTNUpload')
+    } catch(e) {
+        return 'nextSuccessor'
+    }
+}
+
+const getFlashUploadObj = function() {
+    if (supportFlash()) { // 未提供这个函数, 是否支持flash
+        const str = `<object type="application/x-shockwave-flash"></object>`
+        return $(str).appendTo($('body'))
+    }
+    return 'nextSuccessor'
+}
+
+const getFormUploadObj = function() {
+    const str = '<input name="file" type="file" />' // 表单上传
+    return $(str).appendTo($('body'))
+}
+
+const getUploadObj = getActiveUploadObj.after(getFlashUploadObj).after(getFormUploadObj)
+
+```
+
+# 结语
+
+职责链模式只要运用得当，可以很好的帮助我们管理代码，降低发起请求的对象和处理请求的对象之间的耦合性，职责链中的节点数量和顺序是可以自由变化的。
+
+无论事是作用域链，原型链，还是DOM节点中的事件冒泡，我们都能从中找到职责链模式的影子。职责链模式还可以和组合模式结合再一起，用来连接部件和父组件，或是提高组合对象的效率。
