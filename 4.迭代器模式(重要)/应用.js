@@ -26,7 +26,7 @@ const getFormUploadObj = function() {
 // 2. 如果正在被迭代的函数返回一个函数,则表示找到了upload的对象, 反之函数返回false,则继续迭代
 
 const iteratorUploadObj = function() {
-    for(let i = 0, fn; fn = arguments[i++]) {
+    for(let i = 0, fn; fn = arguments[i++];) {
         const uploadObj = fn()
         if (uploadObj !== false) {
             return uploadObj
