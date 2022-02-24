@@ -68,6 +68,7 @@ const player1 = playerFactory('皮蛋', 'red'),
       player3 = playerFactory('宝宝', 'red'),
       player4 = playerFactory('小强', 'red')
 
+// 蓝队
 const player5 = playerFactory('黑妞', 'blue'),
       player6 = playerFactory('葱头', 'blue'),
       player7 = playerFactory('胖墩', 'blue'),
