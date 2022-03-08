@@ -260,3 +260,126 @@ func = func.before((param) => {
 
 func({ a: 'a' })
 ```
+
+现在有一个用于发起ajax请求的函数，这个函数负责项目中所有的ajax请求：
+
+```js
+const ajax = function(type, url, param) {
+    // 发送ajax的代码略
+}
+ajax('get', 'http://xxxxxx', { name: 'jie' })
+```
+
+有一天，接口突然需要token了。
+
+那么我们就得改动代码
+
+```js
+const ajax = function(type, url, param = {}) {
+    param.token = getToken() // 该函数省略，获取token值
+    // 发送ajax的代码略
+}
+```
+
+虽然解决了问题，但是我们的ajax函数变得僵硬了，每个从ajax函数里发出的请求都自带带上了token参数，如果我们把这个函数放到npm供别人使用，token参数有可能是多余的，可能别人不需要验证token呢
+
+我们来看看如何解决这个问题：
+
+```JS
+let ajax = function(type, url, param = {}) {
+    // 发送ajax的代码略
+}
+ajax = ajax.before((type, url, param)) {
+    param.token = getToken()
+}
+```
+
+上面的代码是不是有点熟悉，熟悉axios的人 应该很清楚。。
+
+其实这就是axios拦截器的原理，拦截器用的也是装饰者模式
+
+## AOP版表单验证
+
+直接看代码，来看看我们常写的代码
+```js
+const submit = () => {
+    if (!formData.userName) {
+        return alert('用户名不能为空')
+    }
+    if (!formData.password) {
+        return alert('密码不能为空')
+    }
+    // ...其他验证
+    ajax('http://xxx', formData)
+}
+```
+
+submit函数在此处承担了2个职责，除了提交ajax外，还要验证表单的合法性，一来回造成代码臃肿，二来谈不上任何可复用性
+
+那有些人说，我把验证方法抽出来不就好了？
+```js
+const validata = () => {
+    if (!formData.userName) {
+        alert('用户名不能为空')
+        return false
+    }
+    if (!formData.password) {
+        alert('密码不能为空')
+        return false
+    }
+    return true
+}
+const submit = () => {
+    if (!validata()) {
+        return // 校验未通过
+    }
+    // ...其他验证
+    ajax('http://xxx', formData)
+}
+```
+
+现在代码有了一些改进，但submit函数内部还要计算validata函数的返回值，我们可以用AOP来继续优化这段代码
+
+```js
+Function.prototype.before = function (beforeFn) {
+    const that = this
+    return function() {
+        if (beforeFn.apply(this, arguments) === false) {
+            return // beforeFn返回false的情况直接return，不再执行后面的原函数
+        }
+        return that.apply(this, arguments)
+    }
+}
+
+const validata = () => {
+    if (!formData.userName) {
+        alert('用户名不能为空')
+        return false
+    }
+    if (!formData.password) {
+        alert('密码不能为空')
+        return false
+    }
+    return true
+}
+const submit = () => {
+    // ...其他验证
+    ajax('http://xxx', formData)
+}.before(validata)
+```
+
+值得注意的是，因为after或者before返回的都是新函数，如果在原函数上保存了一些属性，那么这些属性会丢失：
+
+```js
+let func = () => alert(1)
+func.a = 'a'
+func = func.after(() => alert(2))
+
+console.log(func.a) // undefined
+```
+
+# 结语
+
+这种模式在实际开发中非常有用，除了上面的例子，它在框架开发中十分的有用。
+
+例如nestJs，Java的注解等

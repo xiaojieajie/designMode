@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button id="button">开关</button>
+    <script src="./state-machine.js"></script>
+    <script>
+        const fsm = new StateMachine({
+            init: 'off',
+            transitions: [
+                { name: 'buttonWasPressed', from: 'off', to: 'on' },
+                { name: 'buttonWasPressed', from: 'on', to: 'off' },
+            ],
+            methods: {
+                onButtonWasPressed(event) {
+                    console.log(event)
+                },
+                onOff() {
+                    console.log('关灯');
+                    button.innerHTML = '下一次我是开灯'
+                },
+                onOn() {
+                    console.log('开灯')
+                    button.innerHTML = '下一次我是关灯'
+                }
+            },
+            error(eventName, from, to, args, errorCode, errorMessage) {
+                console.log(arguments)
+            }
+        })
+        button.onclick = () => {
+            fsm.buttonWasPressed()
+            // console.log(fsm)
+        }
+    </script>
+</body>
+</html>

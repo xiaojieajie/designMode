@@ -1,24 +1,26 @@
-Function.prototype.before = function(beforeFn) {
-    return () => {
+Function.prototype.before = function (beforeFn) {
+    const that = this
+    return function() {
         beforeFn.apply(this, arguments)
-        return this.apply(this, arguments)
+        return that.apply(this, arguments)
     }
 }
 
-Function.prototype.after = function(afterFn) {
-    return () => {
-        const ret = this.apply(this, arguments)
+Function.prototype.after = function (afterFn) {
+    const that = this
+    return function() {
+        const ret = that.apply(this, arguments)
         afterFn.apply(this, arguments)
         return ret
     }
 }
 
-const a = function() {
-    console.log(2);
-}.before(() => {
-    console.log(1)
-}).after(() => {
-    console.log(3);
-})
+window.onload = function() {
+    alert(1)
+}
 
-a()
+window.onload = (window.onload || function() {}).after(() => {
+    alert(2)
+}).after(() => {
+    alert(3)
+})
